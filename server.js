@@ -1,33 +1,25 @@
 const express = require('express')
-const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors')
+const mongoose = require('mongoose')
 const app = express()
+
+const Note =require('./models/Note')
+
+const notes = new Note()
+const {URI} = require('./config')
 app.use(cors())
-PORT = 3000
-let db = new sqlite3.Database('./notes.db',sqlite3.OPEN_READWRITE,(err)=>{
-	if (err){
-		return console.error(err)
+const PORT = 3000
+app.get('/notes',async (req,res)=>{
+	const response = await Note.find()
+	res.send('success')
+	console.log(response.body)
+})
+
+mongoose.connect(URI,{useNewUrlParser:true}).then(
+	()=>{
+		console.log('connected to db')
+		return app.listen(PORT,()=>{
+			console.log(`server running at port: ${PORT}`)
+		})
 	}
-	console.log(`Connected to the Notes SQlite database`)
-})
-
-app.get('/notes',(req,res)=>{
-	res.send("Hello,Fuck")
-	
-})
-app.post('/',(req,res)=>{
-	db.serialize(()=>{
-		db.run('CREATE TABLE notes(message text)')
-		.run(`INSERT INTO notes(message)
-			VALUES(${req.body})
-			`)
-	})
-	
-
-})
-
-app.listen(PORT,()=>{
-	console.log(`Listening at port ${PORT}`)
-
-})
-db.close();
+)
